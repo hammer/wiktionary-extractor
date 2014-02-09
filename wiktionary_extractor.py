@@ -1,4 +1,7 @@
 #! /usr/bin/env python3
+from itertools import takewhile
+import re
+
 from lxml import etree
 
 WIKTIONARY_XML_FILE=''
@@ -11,11 +14,25 @@ XPATH_PAGE_ID = 'mw:id/text()'
 XPATH_PAGE_CONTENT = 'mw:revision/mw:text/text()'
 MEDIAWIKI_NS = {'mw': 'http://www.mediawiki.org/xml/export-0.8/'}
 IT_PREFIX = '== {{-it-}} =='
+WIKILINKS_RE = re.compile('\[\[(.*?)\]\]')
 
 def xpath_ns(element, xpath_query):
   return element.xpath(xpath_query,
                        namespaces=MEDIAWIKI_NS,
                        smart_strings=False)
+
+# TODO(hammer): do this with smc.mw and XPath?
+def parse_list(wiki_markup, list_marker):
+  lines = wiki_markup.split('\n')
+  try:
+    i = lines.index(list_marker)
+  except ValueError:
+    return [[]]
+
+  return [WIKILINKS_RE.findall(line)
+          for line
+          in takewhile(lambda line: line.startswith('*'), lines[i+1:])]
+
 
 if __name__ == '__main__':
   root = etree.parse(WIKTIONARY_XML_FILE)
@@ -42,7 +59,13 @@ if __name__ == '__main__':
   with open('it_verbs.csv', 'w') as ofile:
     ofile.write('\n'.join([page[0].lower() for page in it_verbs]))
 
+  # Pull out lists from page text (in markup)
+  synonyms = [(page[0], parse_list(page[3], '{{-sin-}}')) for page in it_words]
+  with open('synonyms.csv', 'w') as ofile:
+    ofile.write('\n'.join([' '.join([word[0], ';'.join([','.join(synonym) for synonym in word[1]])])
+                           for word in synonyms]))
 
-
-
-
+  antonyms = [(page[0], parse_list(page[3], '{{-ant-}}')) for page in it_words]
+  with open('antonyms.csv', 'w') as ofile:
+    ofile.write('\n'.join([' '.join([word[0], ';'.join([','.join(antonym) for antonym in word[1]])])
+                           for word in antonyms]))
