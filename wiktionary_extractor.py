@@ -22,6 +22,7 @@ def xpath_ns(element, xpath_query):
                        smart_strings=False)
 
 # TODO(hammer): do this with smc.mw and XPath?
+# Used to parse synonym and antonym lists
 def parse_list(wiki_markup, list_marker):
   lines = wiki_markup.split('\n')
   try:
@@ -32,6 +33,31 @@ def parse_list(wiki_markup, list_marker):
   return [WIKILINKS_RE.findall(line)
           for line
           in takewhile(lambda line: line.startswith('*'), lines[i+1:])]
+
+# TODO(hammer): create a Verb class to capture this complexity
+def parse_verb(wiki_markup):
+  # TODO(hammer): probably prettier to do this with a regex
+  try:
+    conj = wiki_markup.split('conj/Test')[1].split('}}')[0].strip().split('|')[1:]
+  except:
+    return [], {}
+
+  # Bug in ["contendere", "rompere"] markup; fixed on wiki, need to wait for next dump
+  if conj[0] in ['contend', 'romp']:
+    return [], {}
+
+  # TODO(hammer): fix venire, ciurmare, dirimere, etc. on wiki (need to use templates)
+
+  # NB: this would be a lot prettier if we had lfold and pattern matching
+  base_info = []
+  irregularities = []
+  for item in conj:
+    item = item.strip()
+    if '=' in item:
+      irregularities.append(tuple(item.split('=')))
+    else:
+      base_info.append(item)
+  return base_info, dict(irregularities)
 
 
 if __name__ == '__main__':
@@ -47,7 +73,7 @@ if __name__ == '__main__':
   it_words = [page for page in pages
               if page[1] == '0' and page[3].startswith('== {{-it-}} ==')]
   it_verbs = [page for page in pages
-              if page[1] != '0' and page[0].startswith('Appendice:Coniugazioni/Italiano')]
+              if page[1] != '0' and page[0].startswith('Appendice:Coniugazioni/Italiano/')]
 
   print('Found %d italian words and %d conjugated verbs.' % (len(it_words), len(it_verbs)))
 
