@@ -53,11 +53,11 @@ if __name__ == '__main__':
 
   # URL base http://it.wiktionary.org/wiki
   with open('it_words.csv', 'w') as ofile:
-    ofile.write('\n'.join([page[0].lower() for page in it_words]))
+    ofile.write('\n'.join([page[0] for page in it_words]))
 
   # URL base http://it.wiktionary.org/wiki/Appendice:Coniugazioni/Italiano
   with open('it_verbs.csv', 'w') as ofile:
-    ofile.write('\n'.join([page[0].lower() for page in it_verbs]))
+    ofile.write('\n'.join([page[0] for page in it_verbs]))
 
   # Pull out lists from page text (in markup)
   synonyms = [(page[0], parse_list(page[3], '{{-sin-}}')) for page in it_words]
