@@ -4,6 +4,31 @@ import re
 
 from lxml import etree
 
+INFLECTION_CATEGORIES = ['are', 'arsi',
+                         'care', 'carsi',
+                         'ciare', 'ciarsi',
+                         'gare', 'giare',
+                         'iare',
+                         'ere', 'ersi',
+                         'ire', 'ire-b',
+                         'urre']
+
+class Verb:
+  def __init__(self, infinitive, stem, inflection_category, auxiliary_verb, extended_info):
+    self.infinitive = infinitive
+    self.stem = stem
+    self.inflection_category = inflection_category
+    self.auxiliary_verb = auxiliary_verb
+    self.extended_info = extended_info
+
+  def __repr__(self):
+    return('Verb(%s)' % ','.join([self.infinitive, self.stem, self.inflection_category,
+                                  self.auxiliary_verb, str(self.extended_info)]))
+
+  def __str__(self):
+    return(self.infinitive)
+
+
 WIKTIONARY_XML_FILE=''
 
 # TODO(hammer) compile the XPath queries that are run more than once
@@ -50,14 +75,14 @@ def parse_verb(wiki_markup):
 
   # NB: this would be a lot prettier if we had lfold and pattern matching
   base_info = []
-  irregularities = []
+  extended_info = []
   for item in conj:
     item = item.strip()
     if '=' in item:
-      irregularities.append(tuple(item.split('=')))
+      extended_info.append(tuple(item.split('=')))
     else:
       base_info.append(item)
-  return base_info, dict(irregularities)
+  return base_info, dict(extended_info)
 
 
 if __name__ == '__main__':
@@ -83,7 +108,16 @@ if __name__ == '__main__':
 
   # URL base http://it.wiktionary.org/wiki/Appendice:Coniugazioni/Italiano
   with open('it_verbs.csv', 'w') as ofile:
-    ofile.write('\n'.join([page[0] for page in it_verbs]))
+    to_write = []
+    for page in it_verbs:
+      base_info, extended_info = parse_verb(page[3])
+      if len(base_info) == 3:
+        to_write.append(':'.join([page[0],
+                                  Verb(page[0].split('/')[-1], base_info[0], base_info[1],
+                                       base_info[2], extended_info).__repr__()]))
+      else:
+        to_write.append(':'.join([page[0], ';'.join([str(base_info), str(extended_info)])]))
+    ofile.write('\n'.join(to_write))
 
   # Pull out lists from page text (in markup)
   synonyms = [(page[0], parse_list(page[3], '{{-sin-}}')) for page in it_words]
