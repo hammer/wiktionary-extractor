@@ -4,30 +4,7 @@ import re
 
 from lxml import etree
 
-INFLECTION_CATEGORIES = ['are', 'arsi',
-                         'care', 'carsi',
-                         'ciare', 'ciarsi',
-                         'gare', 'giare',
-                         'iare',
-                         'ere', 'ersi',
-                         'ire', 'ire-b',
-                         'urre']
-
-class Verb:
-  def __init__(self, infinitive, stem, inflection_category, auxiliary_verb, extended_info):
-    self.infinitive = infinitive
-    self.stem = stem
-    self.inflection_category = inflection_category
-    self.auxiliary_verb = auxiliary_verb
-    self.extended_info = extended_info
-
-  def __repr__(self):
-    return('Verb(%s)' % ','.join([self.infinitive, self.stem, self.inflection_category,
-                                  self.auxiliary_verb, str(self.extended_info)]))
-
-  def __str__(self):
-    return(self.infinitive)
-
+from it_words.verb import Verb
 
 WIKTIONARY_XML_FILE=''
 
@@ -59,7 +36,6 @@ def parse_list(wiki_markup, list_marker):
           for line
           in takewhile(lambda line: line.startswith('*'), lines[i+1:])]
 
-# TODO(hammer): create a Verb class to capture this complexity
 def parse_verb(wiki_markup):
   # TODO(hammer): probably prettier to do this with a regex
   try:
