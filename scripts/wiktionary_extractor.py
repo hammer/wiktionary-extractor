@@ -83,29 +83,35 @@ if __name__ == '__main__':
   print('Found %d italian words and %d conjugated verbs.' % (len(it_words), len(it_verbs)))
 
   # URL base http://it.wiktionary.org/wiki
+  print("Writing words file")
   with open('it_words.csv', 'w') as ofile:
     ofile.write('\n'.join([page[0] for page in it_words]))
 
   # URL base http://it.wiktionary.org/wiki/Appendice:Coniugazioni/Italiano
+  print("Writing verbs file")
   with open('it_verbs.csv', 'w') as ofile:
     to_write = []
     for page in it_verbs:
       base_info, extended_info = parse_verb(page[3])
       if len(base_info) == 3:
-
-                                  Verb(page[0].split('/')[-1], base_info[0], base_info[1],
-                                       base_info[2], extended_info).__repr__()]))
+        try:
+          v = Verb(*base_info, extended_info=extended_info)
+          to_write.append(':'.join([page[0], repr(v)]))
+        except:
+          to_write.append(':'.join([page[0], ';'.join([str(base_info), str(extended_info)])]))
       else:
         to_write.append(':'.join([page[0], ';'.join([str(base_info), str(extended_info)])]))
     ofile.write('\n'.join(to_write))
 
   # Pull out lists from page text (in markup)
+  print("Writing synonyms file")
   synonyms = [(page[0], parse_list(page[3], '{{-sin-}}')) for page in it_words]
-  with open('synonyms.csv', 'w') as ofile:
+  with open('it_synonyms.csv', 'w') as ofile:
     ofile.write('\n'.join([' '.join([word[0], ';'.join([','.join(synonym) for synonym in word[1]])])
                            for word in synonyms]))
 
+  print("Writing antonyms file")
   antonyms = [(page[0], parse_list(page[3], '{{-ant-}}')) for page in it_words]
-  with open('antonyms.csv', 'w') as ofile:
+  with open('it_antonyms.csv', 'w') as ofile:
     ofile.write('\n'.join([' '.join([word[0], ';'.join([','.join(antonym) for antonym in word[1]])])
                            for word in antonyms]))
