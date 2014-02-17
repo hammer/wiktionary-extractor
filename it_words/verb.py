@@ -20,11 +20,12 @@ PERSONS = [1, 2, 3]
 NUMBERs = ['s', 'p']
 
 class Verb:
-  def __init__(self, stem, type, aus, inf, extended_info):
+  def __init__(self, inf, stem, type, aus, extended_info):
+    self.inf = inf # TODO(hammer): pull from extended_info?
     self.stem = stem
     self.type = type
     self.aus = aus
-    self.inf = inf # TODO(hammer): pull from extended_info?
+    self.extended_info = extended_info
     for (k, v) in extended_info.items():
       pass
 

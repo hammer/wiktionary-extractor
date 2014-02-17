@@ -1,12 +1,11 @@
 #! /usr/bin/env python3
 from itertools import takewhile
 import re
+import sys
 
 from lxml import etree
 
 from it_words.verb import Verb
-
-WIKTIONARY_XML_FILE=''
 
 # TODO(hammer) compile the XPath queries that are run more than once
 XPATH_PAGE = '/mw:mediawiki/mw:page'
@@ -18,10 +17,12 @@ MEDIAWIKI_NS = {'mw': 'http://www.mediawiki.org/xml/export-0.8/'}
 IT_PREFIX = '== {{-it-}} =='
 WIKILINKS_RE = re.compile('\[\[(.*?)\]\]')
 
+
 def xpath_ns(element, xpath_query):
   return element.xpath(xpath_query,
                        namespaces=MEDIAWIKI_NS,
                        smart_strings=False)
+
 
 # TODO(hammer): do this with smc.mw and XPath?
 # Used to parse synonym and antonym lists
@@ -35,6 +36,7 @@ def parse_list(wiki_markup, list_marker):
   return [WIKILINKS_RE.findall(line)
           for line
           in takewhile(lambda line: line.startswith('*'), lines[i+1:])]
+
 
 def parse_verb(wiki_markup):
   # TODO(hammer): probably prettier to do this with a regex
@@ -62,7 +64,9 @@ def parse_verb(wiki_markup):
 
 
 if __name__ == '__main__':
-  root = etree.parse(WIKTIONARY_XML_FILE)
+  wiktionary_xml_file = sys.argv[1]
+  print("Parsing dump file %s" % wiktionary_xml_file)
+  root = etree.parse(wiktionary_xml_file)
 
   # TODO(hammer): better with XSLT or an XQuery library?
   pages = [(xpath_ns(page, XPATH_PAGE_TITLE)[0],
@@ -88,7 +92,7 @@ if __name__ == '__main__':
     for page in it_verbs:
       base_info, extended_info = parse_verb(page[3])
       if len(base_info) == 3:
-        to_write.append(':'.join([page[0],
+
                                   Verb(page[0].split('/')[-1], base_info[0], base_info[1],
                                        base_info[2], extended_info).__repr__()]))
       else:
