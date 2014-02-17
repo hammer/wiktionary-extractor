@@ -1,4 +1,9 @@
 # TODO(hammer): implement "alts" support
+import re
+import string
+# TODO(hammer): replace use of string module with character classes
+IRREGULARITY_RE = re.compile('(['+string.ascii_letters+']*)(['+string.digits+']*)(['+string.ascii_letters+'])')
+
 ENDINGS = {
   'are': {
     'pres': ['o', 'i', 'a', 'iamo', 'ate', 'ano'],
@@ -104,6 +109,16 @@ class Verb:
     self.conjugations = dict([(tense, [stem + ending for ending in endings])
                               for (tense, endings)
                               in ENDINGS[type].items()])
+
+    # Irregularities
+    for (k, v) in extended_info.items():
+      try:
+        tense, persons, number = IRREGULARITY_RE.match(k).groups()
+        for person in persons:
+          index = (int(person) - 1) + 3 * (1 if number == 'p' else 0)
+          self.conjugations[tense][index] = v
+      except:
+        pass
 
   def __repr__(self):
     return('Verb(%s)' % ','.join([self.inf, self.stem, self.type,
