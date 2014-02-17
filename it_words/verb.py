@@ -1,23 +1,4 @@
 # TODO(hammer): implement "alts" support
-
-INFLECTION_CATEGORIES = ['are', 'arsi',
-                         'ere', 'ersi',
-                         'ire', 'irsi',
-                         'ire-b', 'irsi-b',
-                         'care', 'carsi',
-                         'gare', 'garsi',
-                         'iare', 'iarsi',
-                         'ciare', 'ciarsi',
-                         'giare', 'giarsi',
-                         'urre', 'ursi']
-
-VERB_MEMBERS = ['inf', 'ger', 'par', 'pp']
-
-REFLEXIVITY = [True, False]
-TENSES = ['pres', 'imperf', 'prem', 'fut', 'cond', 'cong', 'imp']
-PERSONS = [1, 2, 3]
-NUMBERs = ['s', 'p']
-
 ENDINGS = {
   'are': {
     'pres': ['o', 'i', 'a', 'iamo', 'ate', 'ano'],
@@ -32,12 +13,12 @@ ENDINGS = {
   'ere': {
     'pres': ['o', 'i', 'e', 'iamo', 'ete', 'ono'],
     'imperf': ['evo', 'evi', 'eva', 'evamo', 'evate', 'evano'],
-    'prem': ['ei', 'esti', 'ette', 'é', 'emmo', 'este', 'ettero'],
+    'prem': ['ei', 'esti', 'é', 'emmo', 'este', 'erono'],
     'fut': ['erò', 'erai', 'erà', 'eremo', 'erete', 'eranno'],
     'cond': ['erei', 'eresti', 'erebbe', 'eremmo', 'ereste', 'erebbero'],
     'cong': ['a', 'a', 'a', 'iamo', 'iate', 'ano'],
     'congimp': ['essi', 'essi', 'esse', 'essimo', 'este', 'essero'],
-    'imp': ['', 'i', 'i', 'iamo', 'ete', 'ano']
+    'imp': ['', 'i', 'a', 'iamo', 'ete', 'ano']
   },
   'ire': {
     'pres': ['o', 'i', 'e', 'iamo', 'ite', 'ono'],
@@ -52,14 +33,65 @@ ENDINGS = {
 }
 
 ENDINGS['ire-b'] = dict([(tense,
-                          ['isc' + ending if i in [0, 1, 2, 5] else ending
-                           for (i, ending) in enumerate(endings)]
-                          if tense in ['pres', 'cong', 'imp'] else endings)
+                          ['isc' + ending
+                           if ending in ['a', 'e', 'i', 'o', 'ano', 'ono']
+                           else ending
+                           for ending in endings])
                          for (tense, endings)
                          in ENDINGS['ire'].items()])
 
+ENDINGS['care'] = dict([(tense,
+                         ['h' + ending if ending.startswith(('e', 'i')) else ending
+                          for ending in endings])
+                         for (tense, endings)
+                         in ENDINGS['are'].items()])
+ENDINGS['gare'] = ENDINGS['care']
+
+ENDINGS['iare'] = dict([(tense, [ending.lstrip('i') for ending in endings])
+                         for (tense, endings)
+                         in ENDINGS['are'].items()])
+
+ENDINGS['ciare'] = dict([(tense,
+                          ['i' + ending.lstrip('i')
+                           if not ending.startswith('e')
+                           else ending
+                           for ending in endings])
+                         for (tense, endings)
+                         in ENDINGS['are'].items()])
+ENDINGS['giare'] = ENDINGS['ciare']
+
+ENDINGS['urre'] = dict([(tense,
+                         ['ur' + ending.lstrip('e')
+                          if ending.startswith('er')
+                          else 'uc' + ending
+                          for ending in endings])
+                        for (tense, endings)
+                        in ENDINGS['ere'].items()
+                        if tense != 'prem'])
+ENDINGS['urre']['prem'] = ['ussi', 'ucesti', 'usse', 'ucemmo', 'uceste', 'ussero']
+
+# Reflexive
+for type in ['are', 'ere', 'ire', 'care', 'gare', 'iare', 'ciare', 'giare', 'urre', 'ire-b']:
+  if type == 'ire-b':
+    reflexive_type = 'irsi-b'
+  elif type == 'urre':
+    reflexive_type = 'ursi'
+  else:
+    reflexive_type = type[:-1] + 'si'
+
+  ENDINGS[reflexive_type] = ENDINGS[type]
+  suffixes = ['', 'ti', '', 'ci', 'vi', '']
+  ENDINGS[reflexive_type]['imp'] = [''.join([ending, suffix])
+                                    for (ending, suffix)
+                                    in zip(ENDINGS[type]['imp'], suffixes)]
+
+# TODO(hammer): make this class immutable
 class Verb:
   def __init__(self, stem, type, aus='avere', extended_info=None):
+    # TODO(hammer): check for data quality here
+    if type not in ENDINGS.keys():
+      pass
+
     self.stem = stem
     self.type = type
     self.aus = aus
