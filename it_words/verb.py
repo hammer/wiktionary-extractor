@@ -97,6 +97,11 @@ for type in ['are', 'ere', 'ire', 'care', 'gare', 'iare', 'ciare', 'giare', 'urr
                                     for (ending, suffix)
                                     in zip(ENDINGS[type]['imp'], suffixes)]
 
+  ENDINGS[reflexive_type]['no_tense'] = \
+      [reflexive_type.split('-')[0]] + \
+      [ending + 'si' for ending in ENDINGS[type]['no_tense'][1:]]
+
+
 # TODO(hammer): make this class immutable
 class Verb:
   def __init__(self, stem, type, aus='avere', extended_info=None):
@@ -115,6 +120,14 @@ class Verb:
     self.conjugations = dict([(tense, [stem + ending for ending in endings])
                               for (tense, endings)
                               in ENDINGS[type].items()])
+    if self.is_reflexive:
+      prefixes = ['mi', 'ti', 'si', 'ci', 'vi', 'si']
+      self.conjugations.update(dict([(tense, [' '.join([prefix, word])
+                                              for (prefix, word)
+                                              in zip(prefixes, words)])
+                                     for (tense, words)
+                                     in self.conjugations.items()
+                                     if tense not in ['no_tense', 'imp']]))
 
     # Irregularities
     for (k, v) in extended_info.items():
