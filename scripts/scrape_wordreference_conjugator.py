@@ -34,7 +34,7 @@ def get_conjugated_tense(xpath, html_fragment):
 
 
 if __name__ == '__main__':
-  parser = argparse.ArgumentParser(description='Scrape verb conjugations from Wordreference.')
+  parser = argparse.ArgumentParser(description='Scrape verb conjugations from WordReference.')
   parser.add_argument('verb_file', help='a newline-separated list of verbs')
   parser.add_argument('-v', '--verbose', action='store_true')
 
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     verbs = [line.strip() for line in infile.readlines()]
 
   for verb in verbs:
-    # Wordreference can't conjugate it!
+    # WordReference can't conjugate it!
     if verb in ['delinquere', 'ire', 'gire', 'soccombere']:
       continue
 
