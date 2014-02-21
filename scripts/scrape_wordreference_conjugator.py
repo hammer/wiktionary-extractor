@@ -50,7 +50,7 @@ if __name__ == '__main__':
     if verb in ['delinquere', 'ire', 'gire', 'soccombere']:
       continue
 
-    logging.info("Processing %s\n" % verb)
+    logging.info("Processing %s" % verb)
     r = requests.get(WORDREFERENCE_CONJUGATOR_URL_BASE + verb)
     verb_html = r.content
 
