@@ -2,6 +2,7 @@
 # TODO(hammer): implement "alts" support
 import re
 import string
+import logging
 
 # TODO(hammer): replace use of string module with character classes
 IRREGULARITY_RE = re.compile('^(['+string.ascii_letters+']*)(['+string.digits+']*)(['+string.ascii_letters+']*)(['+string.digits+']*)$')
@@ -91,7 +92,7 @@ for type in ['are', 'ere', 'ire', 'care', 'gare', 'iare', 'ciare', 'giare', 'urr
   else:
     reflexive_type = type[:-1] + 'si'
 
-  ENDINGS[reflexive_type] = ENDINGS[type]
+  ENDINGS[reflexive_type] = ENDINGS[type].copy()
   suffixes = ['', 'ti', '', 'ci', 'vi', '']
   ENDINGS[reflexive_type]['imp'] = [''.join([ending, suffix])
                                     for (ending, suffix)
@@ -107,12 +108,13 @@ class Verb:
   def __init__(self, stem, type, aus='avere', extended_info=None):
     # TODO(hammer): check for data quality here and raise a better Exception
     if type not in ENDINGS.keys():
+      logging.error('Bad type: %s' % type)
       raise(Exception)
 
     self.stem = stem
     self.type = type
     self.aus = aus
-    self.extended_info = extended_info
+    self.extended_info = extended_info if extended_info is not None else {}
 
     # Derived members
     base_type = type.split('-')[0]
@@ -130,7 +132,7 @@ class Verb:
                                      if tense not in ['no_tense', 'imp']]))
 
     # Irregularities
-    for (k, v) in extended_info.items():
+    for (k, v) in self.extended_info.items():
       try:
         word1, number1, word2, number2 = IRREGULARITY_RE.match(k).groups()
         if word1 in NO_TENSE:

@@ -5,6 +5,8 @@ import re
 import requests
 import sys
 
+from it_words.verb import Verb
+
 XPATH_TENSES = {
   'no_tense': '//td[starts-with(@title, "infinitive")]/following-sibling::td',
   'pres': '//th[@title="Indicative"]/../following-sibling::tr[2]/td[2]',
@@ -60,6 +62,20 @@ if __name__ == '__main__':
       conjugated_tense = get_conjugated_tense(xpath, verb_html)
       logging.info('Conjugated tense: %s' % conjugated_tense)
       conjugated_tenses.append((tense, conjugated_tense))
+
+    # Basic test for irregularity
+    irregularities = 0
+    try:
+      regular_conjugated_tenses = Verb(verb[:-3], verb[-3:]).conjugations
+    except:
+      continue
+    for (tense, conjugated_tense) in conjugated_tenses:
+      logging.info('Regular conjugated tense: %s' % regular_conjugated_tenses[tense])
+      irregularities += sum([x != y
+                             for (x, y)
+                             in zip(regular_conjugated_tenses[tense],
+                                    conjugated_tense)])
+    logging.info("%s has %d irregularities." % (verb, irregularities))
 
 
 
