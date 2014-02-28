@@ -1,5 +1,5 @@
 from nose.tools import *
-import it_words
+from it_words import verb
 
 def setup():
   print("SETUP!")
@@ -7,5 +7,6 @@ def setup():
 def teardown():
   print("TEAR DOWN!")
 
-def test_basic():
-  print("I RAN!")
+def test_irregularity_re():
+  verb.IRREGULARITY_RE.match("prem1s").groups() == ('prem', '1', 's', '')
+
